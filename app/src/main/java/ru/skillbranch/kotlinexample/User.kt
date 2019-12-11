@@ -161,10 +161,10 @@ class User private constructor(
             return User(
                 firstName,
                 lastName,
-                user[1],
+                user[1].ifBlank{ null },
                 user[2],
                 user[3],
-                user[4]
+                user[4].ifBlank{ null }
             )
         }
 
