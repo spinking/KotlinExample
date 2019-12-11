@@ -2,13 +2,13 @@ package ru.skillbranch.kotlinexample.extensions
 
 
 fun <T> List<T>.dropLastUntil(predicate: (T) -> Boolean): List<T> {
-    if (!isEmpty()) {
-        val iterator = listIterator(size)
-        while (iterator.hasPrevious()) {
-            if (!predicate(iterator.previous())) {
-                return take(iterator.nextIndex() + 1)
-            }
+    var yielding = false
+    val list = ArrayList<T>()
+    for (item in this.asReversed())
+        if (yielding)
+            list.add(item)
+        else if (predicate(item)) {
+            yielding = true
         }
-    }
-    return emptyList()
+    return list.asReversed()
 }
