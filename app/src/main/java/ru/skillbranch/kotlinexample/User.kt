@@ -39,9 +39,8 @@ class User private constructor(
         }
         get() = _login!!
 
-    private val salt: String by lazy {
-        ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
-    }
+    private var salt: String = ByteArray(16).also { SecureRandom().nextBytes(it) }.toString()
+
     private lateinit var passwordHash: String
 
     @VisibleForTesting(otherwise = VisibleForTesting.NONE)
@@ -69,6 +68,20 @@ class User private constructor(
         passwordHash = encrypt(code)
         accessCode = code
         sendAccessCodeToUser(rawPhone, code)
+    }
+
+    //for csv
+    constructor(
+        firstName: String,
+        lastName: String?,
+        email: String?,
+        _salt: String,
+        hash: String,
+        phone: String?
+    ) : this(firstName, lastName, email = email, rawPhone = phone, meta = mapOf("src" to "csv")) {
+        println("Secondary csv constructor")
+        salt = _salt
+        passwordHash = hash
     }
 
     init {
@@ -136,10 +149,23 @@ class User private constructor(
             val (firstName, lastName) = fullName.fullNameToPair()
 
             return when {
-                !phone.isNullOrBlank() -> User(firstName, lastName)
+                !phone.isNullOrBlank() -> User(firstName, lastName, phone)
                 !email.isNullOrBlank() && !password.isNullOrBlank() -> User(firstName, lastName, email, password)
                 else -> throw IllegalArgumentException("Email or phone must be not null or blank")
             }
+        }
+
+        fun parseCSV(csv: String): User {
+            val user = csv.split(";", ":")
+            val (firstName, lastName) = user[0].trim().fullNameToPair()
+            return User(
+                firstName,
+                lastName,
+                user[1],
+                user[2],
+                user[3],
+                user[4]
+            )
         }
 
         private fun String.fullNameToPair() : Pair<String, String?> {
@@ -150,7 +176,7 @@ class User private constructor(
                         (size) {
                         1 -> first() to null
                         2 -> first() to last()
-                        else -> throw IllegalArgumentException("Fullname must contain only first name and last name, current split result ${this@fullNameToPair}")
+                        else -> throw IllegalArgumentException("FullName must contain only first name and last name, current split result ${this@fullNameToPair}")
                     }
                 }
         }
