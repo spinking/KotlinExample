@@ -17,7 +17,7 @@ object UserHolder {
         return User.makeUser(fullName, email = email, password = password)
             .also { user ->
                 if (map.containsKey(user.login.trim()))
-                    throw IllegalArgumentException("A user with this phone already exists")
+                    throw IllegalArgumentException("A user with this email already exists")
 
                 map[user.login.trim()] = user
             }
